@@ -1,4 +1,4 @@
-package cnn;
+package io.artie.ai.cnn;
 
 public class Connection {
 	private double weight;
