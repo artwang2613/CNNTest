@@ -1,7 +1,6 @@
-package cnn;
+package io.artie.ai.cnn;
 
 import java.util.ArrayList;
-import cnn.Connection;
 
 public class Neuron {
 	private double value;

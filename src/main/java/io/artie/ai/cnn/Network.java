@@ -1,13 +1,9 @@
-package cnn;
-
-import cnn.Neuron;
+package io.artie.ai.cnn;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -16,8 +12,6 @@ import java.util.Random;
 
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
-import cnn.Connection;
-import cnn.NeuralLayer;
 
 public class Network {
 
@@ -45,13 +39,9 @@ public class Network {
 	}
 
 	public void generateConnections() throws IOException {
-		
+
 		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
 		PrintWriter pw = new PrintWriter(file);
-		
-
-		
-
 
 		for (Neuron n : layers.get(3).neurons) {
 			for (int j = 0; j < layers.get(2).neurons.size(); j++) {
@@ -66,12 +56,12 @@ public class Network {
 		pw.close();
 	}
 
-	public void clearFile() throws IOException{
+	public void clearFile() throws IOException {
 		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
 		PrintWriter pw = new PrintWriter(file);
 		pw.close();
 	}
-	
+
 	public void readConnections() throws IOException {
 		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
 		FileReader reader = new FileReader(file);
@@ -97,8 +87,7 @@ public class Network {
 	public void editWeightsLayers(int index) throws FileNotFoundException {
 		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
 		PrintWriter pw = new PrintWriter(file);
-		
-		
+
 		double temp = 0;
 		calculateError(index);
 		for (int k = 0; k < 16; k++) {
@@ -108,9 +97,9 @@ public class Network {
 						* ((Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue()))
 								/ (Math.pow(1 + (Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue())), 2))));
 				temp = 3 + (layers.get(3).neurons.get(k).getValue() - ans[k])
-				* ((Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue()))
-						/ (Math.pow(1 + (Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue())), 2)));
-				//pw.println(temp);
+						* ((Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue()))
+								/ (Math.pow(1 + (Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue())), 2)));
+				// pw.println(temp);
 
 			}
 		}
@@ -141,7 +130,7 @@ public class Network {
 				}
 			}
 			sum = sum / (layers.get(1).filters.size() * 24 * 24);
-			//System.out.println(sum);
+			// System.out.println(sum);
 			layers.get(2).neurons.get(n).setValue(sum);
 			sum = 0;
 
@@ -188,7 +177,7 @@ public class Network {
 			flattenConv();
 		}
 		evaluateLastLayer();
-		//clearFile();
+		// clearFile();
 		editWeightsLayers(index);
 		System.out.println("GRAH: " + error + " %");
 	}
@@ -210,7 +199,7 @@ public class Network {
 					// System.out.println(sum);
 					sum = 0;
 				}
-				//sum = 0;
+				// sum = 0;
 			}
 		}
 
@@ -231,25 +220,24 @@ public class Network {
 				}
 				sum = 1 / (1 + Math.pow(Math.E, -sum));
 				layers.get(1).filters.get(index).setPO(sum);
-				//System.out.println(sum);
+				// System.out.println(sum);
 				sum = 0;
 			}
 		}
 
 	}
-	
-	
+
 	public void evaluateLastLayer() {
 		double sum = 0;
 		for (Neuron n : layers.get(3).neurons) {
 			for (int m = 0; m < 64; m++) {
-				sum = sum +  layers.get(2).neurons.get(m).getValue() * 1/(1+Math.pow(Math.E,(n.getRelatedValue(n.getId()))));
+				sum = sum + layers.get(2).neurons.get(m).getValue() * 1
+						/ (1 + Math.pow(Math.E, (n.getRelatedValue(n.getId()))));
 			}
 			n.setValue(sum);
 			sum = 0;
 		}
 	}
-	
 
 	public void calculateError(int index) {
 		error = 0;

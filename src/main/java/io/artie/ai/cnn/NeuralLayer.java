@@ -1,8 +1,7 @@
-package cnn;
+package io.artie.ai.cnn;
 
 import java.util.ArrayList;
 
-import cnn.Neuron;
 
 public class NeuralLayer {
 	private int netID;

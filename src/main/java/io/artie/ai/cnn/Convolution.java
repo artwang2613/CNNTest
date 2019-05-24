@@ -1,4 +1,4 @@
-package cnn;
+package io.artie.ai.cnn;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 
 
-
-import cnn.ImageLoad;
 
 public class Convolution {
 	private int id;

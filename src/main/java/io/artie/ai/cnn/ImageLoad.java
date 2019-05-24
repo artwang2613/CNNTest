@@ -1,4 +1,4 @@
-package cnn;
+package io.artie.ai.cnn;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
