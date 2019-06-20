@@ -1,256 +1,374 @@
-package io.artie.ai.cnn;
+package net;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 import org.supercsv.io.CsvListReader;
 import org.supercsv.prefs.CsvPreference;
 
 public class Network {
 
-	private int size;
-	private int count = 0;
-	private int target;
-	private double finalSum;
-	private ArrayList<NeuralLayer> layers = new ArrayList<NeuralLayer>();
-	private ArrayList<ArrayList<Double>> inputs = new ArrayList<ArrayList<Double>>();
-	ArrayList<Double> labels = new ArrayList<Double>();
-	private ArrayList<Double> outputs = new ArrayList<Double>();
-	private ArrayList<Double> pixels = new ArrayList<Double>();
-	private ArrayList<Double> secondPixels = new ArrayList<Double>();
-	private boolean go;
-	double[] ans = new double[16];
-	double error = 0;
+	private ArrayList<ArrayList<Double>> weights = new ArrayList<ArrayList<Double>>();
+	private ArrayList<ArrayList<Double>> vals = new ArrayList<ArrayList<Double>>();
+	private ArrayList<ArrayList<Double>> deltas = new ArrayList<ArrayList<Double>>();
 
-	Network() {
+	private ArrayList<Double> inputs = new ArrayList<>();
+	private ArrayList<Double> targets = new ArrayList<>();
+	private ArrayList<Double> outputs = new ArrayList<>();
 
-		layers.add(new NeuralLayer(0, 0, 0, "conv"));
-		layers.add(new NeuralLayer(1, 0, 0, "conv"));
-		layers.add(new NeuralLayer(2, 64, 0, "norm"));
-		layers.add(new NeuralLayer(3, 16, 0, "norm"));
-		fillNet();
+	private ArrayList<ArrayList<Double>> trainingData = new ArrayList<ArrayList<Double>>();
+	private ArrayList<Double> pairedTargets = new ArrayList<>();
+
+	private int numLayers;
+	Scanner scnr = new Scanner(System.in);
+
+	public static void main(String[] args) throws IOException {
+
+		ArrayList<Double> userInputs = new ArrayList<Double>();
+
+		Network nn = new Network(3, userInputs);
+		nn.parseCsv();
+
+		nn.setInputLayer(0);
+		nn.setHiddenLayerSizes();
+		nn.setTargets(0);
+		nn.forwardPropagate();
+		nn.backPropagate();
+
+		for (int i = 1; i < 1000; i++) {
+			nn.setInputLayer(i);
+			nn.setHiddenLayerSizes();
+			nn.setTargets(i);
+			nn.forwardPropagate();
+			nn.backPropagate();
+			// System.out.println(nn.vals.get(nn.numLayers - 1).get(0) + "new predicted
+			// output");
+			// System.out.println(nn.vals.get(nn.numLayers - 1).get(1) + "new predicted
+			// output");
+		}
+		System.out.println("-----Ready to Predict-----");
+		while (true) {
+			if (nn.scnr.next().charAt(0) == 'q') {
+				break;
+			}
+			nn.predict();
+		}
+
+		nn.scnr.close();
 	}
 
-	public void generateConnections() throws IOException {
+	// this using arrayList for different sized hidden layers, flexible
+	public Network(int layers, ArrayList<Double> input) {
+		for (int i = 0; i < layers; i++) {
+			vals.add(new ArrayList<Double>());
+		}
+		for (int i = 0; i < layers - 1; i++) {
+			weights.add(new ArrayList<Double>());
+			deltas.add(new ArrayList<Double>());
+		}
 
-		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
-		PrintWriter pw = new PrintWriter(file);
+		this.numLayers = layers;
+		this.inputs = input;
+	}
 
-		for (Neuron n : layers.get(3).neurons) {
-			for (int j = 0; j < layers.get(2).neurons.size(); j++) {
-				Random rand = new Random();
-				n.addToRelations(new Connection(rand.nextDouble(), j));
-				pw.println(String.valueOf(rand.nextDouble()));
+	public void predict() {
+		Random rand = new Random();
+		int curIndex = rand.nextInt(300);
+		setInputLayer(curIndex);
+		setHiddenLayerSizes();
+		setTargets(curIndex);
+		forwardPropagate();
+		predictOutcome();
+	}
 
-				// System.out.println(rand.nextDouble());
+	public void setInputLayer(int index) {
+		if (index == 0) {
+			for (int i = 0; i < trainingData.get(index).size(); i++) {
+				vals.get(0).add(0.0);
 			}
+		}
+		for (int i = 0; i < trainingData.get(index).size(); i++) {
+			vals.get(0).set(i, trainingData.get(index).get(i));
+			// System.out.println(vals.get(0).get(i));
+		}
+	}
+
+	public void setTargets(int index) {
+		if (index == 0) {
+			for (int i = 0; i < 10; i++) {
+				targets.add(0.0);
+			}
+		}
+		for (int i = 0; i < 10; i++) {
+			// double target = scnr.nextDouble();
+			if (i == pairedTargets.get(index)) {
+				targets.set(i, pairedTargets.get(index));
+			} else {
+				targets.set(i, 0.0);
+			}
+			System.out.println(targets.get(i));
+		}
+	}
+
+	public void setHiddenLayerSizes() {
+		Random rand = new Random(5);
+
+		for (int i = 1; i < this.numLayers; i++) { // setting hidden val sizes
+			// System.out.println("Input size");
+			// int size = scnr.nextInt();
+			vals.get(i).clear();
+			for (int j = 0; j < 50 - 20 * i; j++) {
+				vals.get(i).add(0.0);
+
+			}
+			for (int k = 0; k < vals.get(i - 1).size() * vals.get(i).size(); k++) {
+				weights.get(i - 1).add(rand.nextDouble());
+				deltas.get(i - 1).add(0.0);
+			}
+			// System.out.println(vals.get(i - 1).size() * vals.get(i).size());
 
 		}
-		pw.close();
 	}
 
-	public void clearFile() throws IOException {
-		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
-		PrintWriter pw = new PrintWriter(file);
-		pw.close();
-	}
+	public void forwardPropagate() {
+		for (int i = 1; i < numLayers; i++) {
+			double sum = 0;
+			// System.out.println(" ");
+			for (int j = 0; j < vals.get(i).size(); j++) {
+				for (int h = 0; h < vals.get(i - 1).size(); h++) {
+					sum += weights.get(i - 1).get(j * vals.get(i - 1).size() + h) * vals.get(i - 1).get(h);
 
-	public void readConnections() throws IOException {
-		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
-		FileReader reader = new FileReader(file);
-		BufferedReader br = new BufferedReader(reader);
-		for (Neuron n : layers.get(3).neurons) {
-
-			for (int j = 0; j < layers.get(2).neurons.size(); j++) {
-				// layers.get(3).connections.add(new
-				// Connection((Double.parseDouble(br.readLine())), j));
-				// System.out.println(String.valueOf(Double.valueOf(br.readLine())));
-
-				n.addToRelations(new Connection(0, (n.getId() + 1) * j));
-				if (br.readLine() != null) {
-					n.setRelatedValue((n.getId() + 1) * j, Double.parseDouble(br.readLine()));
 				}
-
+				// System.out.println(sum + " this is the sum for" + i);
+				vals.get(i).set(j, 1.0 / (1.0 + Math.pow(Math.E, -sum / 100)));
+				// System.out.println(" ");
+				// System.out.println(vals.get(i).get(j) + " = neuron(" + i + ")(" + j + ")");
+				sum = 0;
 			}
 		}
-		br.close();
-
 	}
 
-	public void editWeightsLayers(int index) throws FileNotFoundException {
-		File file = new File("C:/Users/wanga/eclipse-workspace1/CNN/Weights/weights.txt");
-		PrintWriter pw = new PrintWriter(file);
-
-		double temp = 0;
-		calculateError(index);
-		for (int k = 0; k < 16; k++) {
-
-			for (int n = 0; n < 64; n++) {
-				layers.get(3).connections.get(k).setWeight(3 + (layers.get(3).neurons.get(k).getValue() - ans[k])
-						* ((Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue()))
-								/ (Math.pow(1 + (Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue())), 2))));
-				temp = 3 + (layers.get(3).neurons.get(k).getValue() - ans[k])
-						* ((Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue()))
-								/ (Math.pow(1 + (Math.pow(Math.E, -layers.get(2).neurons.get(n).getValue())), 2)));
-				// pw.println(temp);
-
-			}
-		}
-
-		go = true;
-
-	}
-
-	public void fillNet() {
-		layers.get(0).fillConLayers();
-		layers.get(1).fillConLayers();
-		layers.get(2).fillNormLayers();
-		layers.get(3).fillNormLayers();
-
-	}
-
-	public void flattenConv() {
-		double sum = 0;
-		for (int n = 0; n < 64; n++) {
-			sum = 0;
-			for (int i = 0; i < layers.get(1).filters.size(); i++) {
-				for (int k = 0; k < 24 * 24; k++) {
-					if (layers.get(1).filters.get(i).getPO(k) < 0) {
-						sum += 0;
-					} else {
-						sum += layers.get(1).filters.get(i).getPO(k);
+	public void backPropagate() {
+		for (int i = numLayers - 1; i > 0; i--) {
+			if (i == numLayers - 1) {
+				for (int j = 0; j < vals.get(i - 1).size(); j++) {
+					for (int k = 0; k < vals.get(i).size(); k++) {
+						deltas.get(i - 1).set(j + k * vals.get(i - 1).size(),
+								deltas.get(i - 1).get(j + k * vals.get(i - 1).size())
+										+ outputErrorDeriv(vals.get(numLayers - 1).get(k), targets.get(k))
+												* sigmoidDeriv(vals.get(i - 1).get(j)) * vals.get(i - 1).get(j));
+						weights.get(i - 1).set(j + k * vals.get(i - 1).size(),
+								weights.get(i - 1).get(j + k * vals.get(i - 1).size())
+										- 0.5 * deltas.get(i - 1).get(j + k * vals.get(i - 1).size()));
+						// System.out.println("New w" + i + "" + "(" + (j + k * vals.get(i - 1).size())
+						// + ")" + " is: "
+						// + weights.get(i - 1).get(j + k * vals.get(i - 1).size()));
+					}
+				}
+			} else {
+				for (int j = 0; j < vals.get(i - 1).size(); j++) {
+					for (int k = 0; k < vals.get(i).size(); k++) {
+						deltas.get(i - 1).set(j + k * vals.get(i - 1).size(),
+								deltas.get(i - 1).get(j + k * vals.get(i - 1).size())
+										* sigmoidDeriv(vals.get(i - 1).get(j)) * vals.get(i - 1).get(j));
+						weights.get(i - 1).set(j + k * vals.get(i - 1).size(),
+								weights.get(i - 1).get(j + k * vals.get(i - 1).size())
+										- 0.5 * deltas.get(i - 1).get(j + k * vals.get(i - 1).size()));
+						// System.out.println("New w" + i + "" + "(" + (j + k * vals.get(i - 1).size())
+						// + ")" + " is: "
+						// + weights.get(i - 1).get(j + k * vals.get(i - 1).size()));
 					}
 				}
 			}
-			sum = sum / (layers.get(1).filters.size() * 24 * 24);
-			// System.out.println(sum);
-			layers.get(2).neurons.get(n).setValue(sum);
-			sum = 0;
-
 		}
 	}
 
+	public double calculateAbsErr() {
+		double sum = 0;
+
+		for (int i = 0; i < vals.get(numLayers - 1).size(); i++) {
+			sum += 0.5 * Math.pow(targets.get(i) - vals.get(numLayers - 1).get(i), 2);
+		}
+		return sum;
+	}
+
+	public void predictOutcome() {
+
+		ArrayList<Double> listResults = new ArrayList<Double>();
+		for (int i = 0; i < 10; i++) {
+			listResults.add(0.5 * Math.pow(targets.get(i) - vals.get(numLayers - 1).get(i), 2));
+		}
+		// System.out.println(listResults);
+		double min = Collections.max(listResults);
+
+		for (int i = 0; i < listResults.size(); i++) {
+			if (min == listResults.get(i)) {
+				System.out.println(i);
+			}
+		}
+
+		listResults.clear();
+
+	}
+
+	public double outputErrorDeriv(double val, double target) {
+		return -(target - val);
+	}
+
+	public double sigmoidDeriv(double output) {
+
+		return output * (1 - output);
+	}
+
 	public ArrayList<ArrayList<Double>> parseCsv() throws IOException {
-		String csvFile = "C:/Users/wanga/eclipse-workspace1/CNN/MNIST/mnist_train.csv";
+		String
+
+		csvFile = "C:/Users/wanga/eclipse-workspace1/SimpleNN/MNIST/mnist_train.csv";
 		FileReader fr = new FileReader(csvFile);
 
 		CsvListReader cs = new CsvListReader(fr, CsvPreference.STANDARD_PREFERENCE);
-		List<String> training;
+
+		int count;
 
 		try {
 			count = 0;
-			while (count < 5000) {
-				inputs.add(new ArrayList<Double>());
-				for (String s : training = cs.read()) {
-					inputs.get(count).add(Double.valueOf(s));
-					// System.out.print(Double.valueOf(s));
+			boolean isLabel;
+			while (count < 1000) {
+				trainingData.add(new ArrayList<Double>());
+				isLabel = true;
+				for (String s : cs.read()) {
+					if (isLabel) {
+						trainingData.get(count).add(Double.valueOf(s)); //
+						// System.out.print(Double.valueOf(s));
+					} else {
+						if (Double.valueOf(s) != 0) {
+							trainingData.get(count).add(1.0); //
+							// System.out.print(1.0);
+						} else {
+							trainingData.get(count).add(0.0); //
+							// System.out.print(0.0);
+						}
+					}
+					isLabel = false;
 				}
 				// System.out.println("");
 				count++;
 			}
-		}
-
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-
 		}
-		for (ArrayList<Double> d : inputs) {
-			labels.add(d.get(0));
+		for (ArrayList<Double> d : trainingData) {
+			pairedTargets.add(d.get(0));
 			d.remove(0);
 		}
-
 		cs.close();
-		return inputs;
+		return trainingData;
 	}
 
-	public void feedForward(int index) throws InterruptedException, IOException {
-		for (int n = 0; n < layers.get(0).filters.size(); n++) {
-			filterInputs(inputs.get(index), n);
-			filterOutputs(outputs, n);
-			flattenConv();
+	public void saveWeights() throws IOException {
+
+		File saveFile = new File("/weightValues.txt");
+
+		if (saveFile.createNewFile()) {
+			System.out.println("New file: " + saveFile.getName() + " created.");
+		} else {
+			System.out.println("File with this name already exists");
 		}
-		evaluateLastLayer();
-		// clearFile();
-		editWeightsLayers(index);
-		System.out.println("GRAH: " + error + " %");
-	}
 
-	public void filterInputs(ArrayList<Double> n, int index) {
-		pixels = n;
-		double sum = 0;
-		for (int y = 0; y < 26; y++) {
-			for (int x = 0; x < 26; x++) {
-				for (int i = (y); i < (3 + y); i++) { // height
-					for (int h = (x); h < (x + 3); h++) { // width
-						sum += pixels.get(h + i * 28)
-								* layers.get(0).filters.get(index).getFilter(3 * (i - y) + (h - x));
-						// System.out.println(this.pixels.get(h + i * 28));
+		FileWriter writer = new FileWriter(saveFile);
+		BufferedWriter bufferedWriter = new BufferedWriter(writer);
 
-					}
-					sum = 1 / (1 + Math.pow(Math.E, -sum));
-					outputs.add(sum);
-					// System.out.println(sum);
-					sum = 0;
-				}
-				// sum = 0;
+		for (ArrayList<Double> layerOfWeights : weights) {
+			for (Double val : layerOfWeights) {
+				bufferedWriter.newLine();
+				bufferedWriter.write(Double.toString(val));
 			}
 		}
 
+		bufferedWriter.close();
 	}
 
-	public void filterOutputs(ArrayList<Double> k, int index) {
-		secondPixels = k;
-		// System.out.println("");
-		double sum = 0;
-		for (int y = 0; y < 24; y++) {
-			for (int x = 0; x < 24; x++) {
-				for (int i = (y); i < (3 + y); i++) { // height
-					for (int h = (x); h < (x + 3); h++) { // width
-						sum += secondPixels.get(h + i * 26)
-								* layers.get(1).filters.get(index).getFilter((h - x) + 3 * (i - y));
+	public void loadWeights() throws IOException {
 
-					}
-				}
-				sum = 1 / (1 + Math.pow(Math.E, -sum));
-				layers.get(1).filters.get(index).setPO(sum);
-				// System.out.println(sum);
-				sum = 0;
+		File loadFile = new File("/weightValues.txt");
+
+		if (loadFile.exists()) {
+			System.out.println("File exists.");
+		} else {
+			System.out.println("This file does not exist.");
+		}
+
+		FileReader reader = new FileReader(loadFile);
+		BufferedReader bufferedReader = new BufferedReader(reader);
+
+		weights.clear();
+		for (ArrayList<Double> layerOfWeights : weights) {
+			for (Double val : layerOfWeights) {
+				val = Double.valueOf(bufferedReader.readLine());
 			}
 		}
 
+		bufferedReader.close();
 	}
 
-	public void evaluateLastLayer() {
-		double sum = 0;
-		for (Neuron n : layers.get(3).neurons) {
-			for (int m = 0; m < 64; m++) {
-				sum = sum + layers.get(2).neurons.get(m).getValue() * 1
-						/ (1 + Math.pow(Math.E, (n.getRelatedValue(n.getId()))));
-			}
-			n.setValue(sum);
-			sum = 0;
-		}
-	}
+	// ____________________________________________________________
+	// This is new code for a more OOP style
 
-	public void calculateError(int index) {
-		error = 0;
-		for (int i = 0; i < 16; i++) {
-			if (labels.get(index) == i) {
-				ans[i] = 1;
+	private List<Layer> layers = new ArrayList<Layer>();
+	private int[] layerSizes = { 75, 50, 25, 10 };
+
+	public Network() {
+		for (int i = 0; i < layerSizes.length; i++) {
+			if (i == 0) {
+				layers.add(new Layer(i, trainingData.get(0).size()));
 			} else {
-				ans[i] = 0;
+				layers.add(new Layer(i, layerSizes[i]));
+				generateConnections(i);
 			}
 		}
-		for (int i = 0; i < 16; i++) {
-			error += Math.pow(layers.get(3).neurons.get(i).getValue() - ans[i], 2);
-		}
-		error = error / 16;
+		
+		
+		
+
 	}
+
+	public void linkConnectionsInLayer(int layerNum) {
+		Layer currentLayer = layers.get(layerNum);
+		Layer previousLayer = layers.get(layerNum - 1);
+
+		List<Node> currentNodes = currentLayer.getNodeList();
+		List<Connection> currentConnections = currentLayer.getConnectionList();
+		List<Connection> connectionsPerNode = new ArrayList<Connection>();
+
+
+		for (Node n : currentNodes) {
+			for(int i = 0; i < previousLayer.getLength(); i++) {
+				connectionsPerNode.add(currentConnections.get(i));
+			}
+			n.setLinkedConnections(connectionsPerNode);
+			connectionsPerNode.clear();
+		}
+
+	}
+
+	public void generateConnections(int layerNum) {
+		Layer currentLayer = layers.get(layerNum);
+		Layer previousLayer = layers.get(layerNum - 1);
+
+		for (int j = 0; j < currentLayer.getLength() * previousLayer.getLength(); j++) {
+			currentLayer.getConnectionList().add(new Connection(0.0, 0.0, currentLayer.getLayerID(), j));
+		}
+	}
+
 }
