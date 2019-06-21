@@ -9,7 +9,7 @@ public class NeuralLayer {
 	private int numOfFilters;
 	private double error;
 	private String type = "";
-	ArrayList<Neuron> neurons = new ArrayList<Neuron>();
+//	ArrayList<Neuron> neurons = new ArrayList<Neuron>();
 	ArrayList<Convolution> filters = new ArrayList<Convolution>();
 	ArrayList<Connection> connections = new ArrayList<Connection>();
 	ArrayList<Double> expendables = new ArrayList<Double>();
@@ -44,7 +44,7 @@ public class NeuralLayer {
 
 	public void fillNormLayers() {
 		for (int size = 0; size < numOfNeurons; size++) {
-			this.neurons.add(new Neuron(0, size, connections, error));
+			//this.neurons.add(new Neuron(0, size, connections, error));
 		}
 	}
 }

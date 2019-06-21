@@ -1,27 +1,65 @@
 package io.artie.ai.cnn;
 
+import java.util.Random;
+
 public class Connection {
-	private double weight;
-	private double id;
+	private double weightVal;
+	private double deltaVal;
 	
-	Connection(double weight, double id){
-		this.weight = weight;
-		this.id = id;
+	private Node inputNode;
+	
+	private Random rand = new Random();
+	
+	
+
+	
+	public Connection (double weightV, double deltaV, Node inputNode) {
+		this.setRandomWeightVal();
+		this.setDeltaVal(deltaV);
+		this.inputNode = inputNode;
+		/*this.setLayerIndex(layerNum);
+		this.setConnectionIndex(connectionNum);*/
 	}
 	
-	public void setWeight (double v) {
-		this.weight = v;
+
+	public void setRandomWeightVal() {
+		this.weightVal = rand.nextDouble();
 	}
 	
-	public double getValue() {
-		return this.weight;
-	}
 	
-	public void setId (double i) {
-		this.id = i;
+	/*public int getConnectionIndex() {
+		return connectionIndexInLayer;
 	}
+
+	public void setConnectionIndex(int connectionIndexInLayer) {
+		this.connectionIndexInLayer = connectionIndexInLayer;
+	}
+
+	public int getLayerIndex() {
+		return layerIndex;
+	}
+
+	public void setLayerIndex(int layerIndex) {
+		this.layerIndex = layerIndex;
+	}*/
+
+	public double getDeltaVal() {
+		return deltaVal;
+	}
+
+	public void setDeltaVal(double deltaVal) {
+		this.deltaVal = deltaVal;
+	}
+
+	public double getWeightVal() {
+		return weightVal;
+	}
+
+	public void setWeightVal(double weightVal) {
+		this.weightVal = weightVal;
+	}
+
+
+
 	
-	public double getId	() {
-		return this.id;
-	}
 }
