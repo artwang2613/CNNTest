@@ -25,11 +25,12 @@ public class WorkingNetwork {
 
 	private int numLayers;
 	private Scanner scnr = new Scanner(System.in);
-	private int[] neuronsInHiddenLayers = new int[] { 20, 15, 10 };
+	// private int[] neuronsInHiddenLayers = new int[] { 20, 15, 10 };
+	private int[] hiddenLayerSize = { 75, 50, 25, 10 };
 
 	public static void main(String[] args) throws IOException {
-		int numberOfLayers = 3;
-		WorkingNetwork nn = new WorkingNetwork(numberOfLayers);
+		// WorkingNetwork nn = new WorkingNetwork(numberOfLayers);
+		WorkingNetwork nn = new WorkingNetwork();
 		nn.train();
 
 		System.out.println("-----Ready to Predict-----");
@@ -44,7 +45,7 @@ public class WorkingNetwork {
 	}
 
 	// this using arrayList for different sized hidden layers, flexible
-	public WorkingNetwork(int layers) {
+	/*public WorkingNetwork(int layers) {
 		this.numLayers = layers;
 		for (int i = 0; i < numLayers; i++) {
 			vals.add(new ArrayList<Double>());
@@ -56,15 +57,25 @@ public class WorkingNetwork {
 
 	}
 
+	/*
+	 * public void train() throws IOException { this.parseCsv();
+	 * setHiddenLayerSizes();
+	 * 
+	 * for (int i = 0; i < TRAINING_ROUNDS; i++) { setInputLayer(i); setTargets(i);
+	 * forwardPropagate(); backPropagate(); //
+	 * System.out.println(nn.vals.get(nn.numLayers - 1).get(0) + "new predicted //
+	 * output"); // System.out.println(nn.vals.get(nn.numLayers - 1).get(1) + "new
+	 * predicted // output"); } }
+	 */
+
 	public void train() throws IOException {
 		this.parseCsv();
-		setHiddenLayerSizes();
 
 		for (int i = 0; i < TRAINING_ROUNDS; i++) {
 			setInputLayer(i);
 			setTargets(i);
-			forwardPropagate();
-			backPropagate();
+			//forwardPropagate();
+			//backPropagate();
 			// System.out.println(nn.vals.get(nn.numLayers - 1).get(0) + "new predicted
 			// output");
 			// System.out.println(nn.vals.get(nn.numLayers - 1).get(1) + "new predicted
@@ -77,7 +88,7 @@ public class WorkingNetwork {
 		int curIndex = rand.nextInt(300);
 		setInputLayer(curIndex);
 		setTargets(curIndex);
-		forwardPropagate();
+		//forwardPropagate();
 		predictOutcome();
 	}
 
@@ -127,33 +138,31 @@ public class WorkingNetwork {
 		return trainingData;
 	}
 
-	private void setHiddenLayerSizes() {
-		Random rand = new Random(5);
-
-		for (int i = 0; i < this.neuronsInHiddenLayers.length; i++) { // setting hidden val sizes
-			// System.out.println("Input size");
-			// int size = scnr.nextInt();
-			vals.get(i + 1).clear();
-			for (int j = 0; j < neuronsInHiddenLayers[i]; j++) {
-				vals.get(i + 1).add(0.0);
-
-			}
-			for (int k = 0; k < vals.get(i).size() * vals.get(i + 1).size(); k++) {
-				weights.get(i).add(rand.nextDouble());
-				deltas.get(i).add(0.0);
-			}
-			// System.out.println(vals.get(i - 1).size() * vals.get(i).size());
-
-		}
-	}
+//	private void setHiddenLayerSizes() {
+//		Random rand = new Random(5);
+//
+//		for (int i = 0; i < this.neuronsInHiddenLayers.length; i++) { // setting hidden val sizes
+//			// System.out.println("Input size");
+//			// int size = scnr.nextInt();
+//			vals.get(i + 1).clear();
+//			for (int j = 0; j < neuronsInHiddenLayers[i]; j++) {
+//				vals.get(i + 1).add(0.0);
+//
+//			}
+//			for (int k = 0; k < vals.get(i).size() * vals.get(i + 1).size(); k++) {
+//				weights.get(i).add(rand.nextDouble());
+//				deltas.get(i).add(0.0);
+//			}
+//			// System.out.println(vals.get(i - 1).size() * vals.get(i).size());
+//
+//		}
+//	}
 
 	private void setInputLayer(int rounds) {
-		vals.get(0).clear();
-
-		for (int i = 0; i < trainingData.get(rounds).size(); i++) {
-			vals.get(0).add(trainingData.get(rounds).get(i));
-			// System.out.println(vals.get(0).get(i));
-		}
+		
+		inputLayer.setInput(trainingData.get(rounds));
+		
+		
 	}
 
 	private void setTargets(int rounds) {
@@ -170,7 +179,7 @@ public class WorkingNetwork {
 		}
 	}
 
-	private void forwardPropagate() {
+	/*private void forwardPropagate() {
 		for (int i = 1; i < numLayers; i++) {
 			double sum = 0.0;
 			List<Double> currentLayer = vals.get(i);
@@ -225,9 +234,9 @@ public class WorkingNetwork {
 				}
 			}
 		}
-	}
+	}*/
 
-	private double calculateAbsErr() {
+	/*private double calculateAbsErr() {
 		double sum = 0;
 
 		for (int i = 0; i < vals.get(numLayers - 1).size(); i++) {
@@ -243,7 +252,7 @@ public class WorkingNetwork {
 	private double sigmoidDeriv(double output) {
 
 		return output * (1 - output);
-	}
+	}*/
 
 	private void predictOutcome() {
 
@@ -262,6 +271,50 @@ public class WorkingNetwork {
 
 		listResults.clear();
 
+	}
+
+	// ____________________________________________________________
+	// This is new code for a more OOP style
+
+	private List<Layer> layers = new ArrayList<Layer>();
+
+	private Layer inputLayer = null;
+	private Layer outputLayer = null;
+	
+	public WorkingNetwork() {
+
+		Layer previousLayer = null;
+		Layer nextLayer = null;
+
+		for (int i = 0; i < hiddenLayerSize.length; i++) {
+			if (i == 0) {
+				previousLayer = new Layer(i, trainingData.get(0).size());
+				inputLayer = previousLayer;
+				layers.add(previousLayer);
+			} else {
+				Layer currentLayer = new Layer(i, hiddenLayerSize[i-1]);
+				currentLayer.addParentLayer(previousLayer);
+				layers.add(currentLayer);
+				previousLayer = currentLayer;
+				outputLayer = currentLayer;
+			}
+		}
+		
+		for(int i = 0; i < layers.size() - 1; i++) {
+			nextLayer = layers.get(i + 1);
+			layers.get(i).addChildLayer(nextLayer);
+			
+		}
+
+	}
+	
+	public void forwardPass() {
+		for(Layer l : layers) {
+			l.forwardPropagate();
+		}
+	}
+	public void backwardPass() {
+		outputLayer.backPropagate(targets);
 	}
 
 }

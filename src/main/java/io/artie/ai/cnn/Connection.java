@@ -16,7 +16,7 @@ public class Connection {
 	public Connection (double weightV, double deltaV, Node inputNode) {
 		this.setRandomWeightVal();
 		this.setDeltaVal(deltaV);
-		this.inputNode = inputNode;
+		this.setInputNode(inputNode);
 		/*this.setLayerIndex(layerNum);
 		this.setConnectionIndex(connectionNum);*/
 	}
@@ -59,6 +59,19 @@ public class Connection {
 		this.weightVal = weightVal;
 	}
 
+
+	public Node getInputNode() {
+		return inputNode;
+	}
+
+
+	public void setInputNode(Node inputNode) {
+		this.inputNode = inputNode;
+	}
+
+	public void correctWeights() {
+		weightVal += -0.5 * deltaVal;
+	}
 
 
 	

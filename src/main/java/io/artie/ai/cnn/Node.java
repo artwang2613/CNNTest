@@ -55,5 +55,24 @@ public class Node {
 		}
 
 	}
+	
+	public void propagate() {
+		double sum = 0.0;
+		for(Connection c : linkedConnections) {
+			sum += c.getWeightVal() * c.getInputNode().getValue();
+		}
+		value = 1.0 / (1.0 + Math.pow(Math.E, -sum / 100.0));
+	}
+	
+	
+	
+	public double nodeSigmoidDeriv() {
+
+		return value * (1 - value);
+	}
+	
+	public double outputErrorDeriv(double target) {
+		return value - target; // -(target - val)
+	}
 
 }
