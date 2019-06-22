@@ -33,7 +33,7 @@ public class Network {
 	private int numLayers;
 	Scanner scnr = new Scanner(System.in);
 
-	public static void main(String[] args) throws IOException {
+	/*public static void main(String[] args) throws IOException {
 
 		ArrayList<Double> userInputs = new ArrayList<Double>();
 
@@ -231,7 +231,7 @@ public class Network {
 		return output * (1 - output);
 	}
 
-	public ArrayList<ArrayList<Double>> parseCsv() throws IOException {
+	public List<ArrayList<Double>> parseCsv() throws IOException {
 		String
 
 		csvFile = "C:/Users/wanga/eclipse-workspace1/SimpleNN/MNIST/mnist_train.csv";
@@ -347,5 +347,5 @@ public class Network {
 	}
 	
 	
-
+*/
 }

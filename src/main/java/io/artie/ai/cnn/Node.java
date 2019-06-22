@@ -6,7 +6,6 @@ import java.util.List;
 public class Node {
 	private double value;
 
-	private Layer parentLayer;
 	private int nodeID;
 
 	private List<Connection> linkedConnections = new ArrayList<Connection>();
@@ -40,13 +39,7 @@ public class Node {
 		this.linkedConnections = linkedConnections;
 	}
 
-	public Layer getParentLayer() {
-		return parentLayer;
-	}
-
-	public void setParentLayer(Layer parentLayer) {
-		this.parentLayer = parentLayer;
-	}
+	
 
 	public void createConnections(List<Node> nodesInPreviousLayer) {
 
@@ -61,7 +54,7 @@ public class Node {
 		for(Connection c : linkedConnections) {
 			sum += c.getWeightVal() * c.getInputNode().getValue();
 		}
-		value = 1.0 / (1.0 + Math.pow(Math.E, -sum / 100.0));
+		value = 1.0 / (1.0 + Math.pow(Math.E, -1 * sum / 100.0));
 	}
 	
 	
