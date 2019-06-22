@@ -70,7 +70,7 @@ public class Connection {
 	}
 
 	public void correctWeights() {
-		weightVal += -0.5 * deltaVal;
+		weightVal += -10 * deltaVal;
 	}
 
 

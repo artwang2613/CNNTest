@@ -21,8 +21,9 @@ public class Layer {
 		}
 	}
 
-	public void addParentLayer(Layer parent) {
+	public void addRelations(Layer parent) {
 		this.parent = parent;
+		parent.child = this;
 
 		// construct the connections between the layers
 		for (Node n : nodes) {
@@ -65,20 +66,21 @@ public class Layer {
 	}
 
 	public void forwardPropagate() {
-		//we only do this for hidden layers ie checking if they have parents
-		if (parent != null) { 
+		// we only do this for hidden layers ie checking if they have parents
+		if (parent != null) {
 			for (Node n : nodes) {
 				n.propagate();
 			}
-			if(child != null) {
-				child.forwardPropagate();
-			}
+		}
+		if (child != null) {
+			child.forwardPropagate();
 		}
 	}
 
 	public void backPropagate(List<Double> targets) {
 		if (targets != null) {
 			for (Node n : nodes) {
+				double nodeID = n.getNodeID();
 				for (Connection c : n.getLinkedConnections()) {
 					c.setDeltaVal(c.getInputNode().getValue() * n.nodeSigmoidDeriv()
 							* n.outputErrorDeriv(targets.get(n.getNodeID())));
@@ -102,8 +104,8 @@ public class Layer {
 					}
 
 					for (Connection childConnection : childConnections) {
-						double deltaVal = currentConnection.getDeltaVal()
-								+ node.nodeSigmoidDeriv() * currentConnection.getInputNode().getValue() * childConnection.getDeltaVal();
+						double deltaVal = currentConnection.getDeltaVal() + node.nodeSigmoidDeriv()
+								* currentConnection.getInputNode().getValue() * childConnection.getDeltaVal();
 						currentConnection.setDeltaVal(deltaVal);
 					}
 
@@ -114,7 +116,7 @@ public class Layer {
 
 			}
 		}
-		if(parent.parent != null) {
+		if (parent.parent != null) {
 			parent.backPropagate(null);
 		}
 	}
