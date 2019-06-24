@@ -4,20 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Layer {
-
 	private List<Node> nodes = new ArrayList<Node>();
-	private Layer parent;
-	private Layer child;
+	private Layer parent = null;
+	private Layer child = null;
 
 	private int index;
-	private int length;
 
 	public Layer(int index, int size) {
-		this.setLength(size);
 		this.index = index;
 
 		for (int i = 0; i < size; i++) {
-			nodes.add(new Node(0.0, this.index, i));
+			nodes.add(new Node(0.0, i, this));
 		}
 	}
 
@@ -26,13 +23,9 @@ public class Layer {
 		parent.child = this;
 
 		// construct the connections between the layers
-		for (Node n : nodes) {
-			n.createConnections(parent.getNodes());
+		for (Node node : nodes) {
+			node.createConnections(parent.getNodes());
 		}
-	}
-
-	public void addChildLayer(Layer child) {
-		this.child = child;
 	}
 
 	public void setInput(List<Double> inputs) {
@@ -45,10 +38,6 @@ public class Layer {
 		return nodes;
 	}
 
-	public void setNodes(List<Node> nodeList) {
-		this.nodes = nodeList;
-	}
-
 	public int getLayerID() {
 		return index;
 	}
@@ -57,20 +46,15 @@ public class Layer {
 		this.index = layerID;
 	}
 
-	public int getLength() {
-		return length;
-	}
-
-	public void setLength(int length) {
-		this.length = length;
-	}
-
 	public void forwardPropagate() {
 		// we only do this for hidden layers ie checking if they have parents
 		if (parent != null) {
-			for (Node n : nodes) {
-				n.propagate();
+			System.out.println("Forward propagation: starting on layer ->" + this.index);
+			for (Node node : nodes) {
+				node.propagate();
 			}
+		} else {
+			System.out.println("Forward propagation: skiping this layer ->" + this.index + ": this is the INPUT layer");
 		}
 		if (child != null) {
 			child.forwardPropagate();
@@ -78,10 +62,13 @@ public class Layer {
 	}
 
 	public void backPropagate(List<Double> targets) {
+		System.out.println("Back propagation: starting on layer ->" + this.index);
 		if (targets != null) {
+			System.out.println("Back propagation: on layer ->" + this.index + ": this is the OUTPUT layer.");
 			for (Node n : nodes) {
-				double nodeID = n.getNodeID();
-				for (Connection c : n.getLinkedConnections()) {
+				System.out.println("Back propagation: running on " + n.toString());
+				// double nodeID = n.getNodeID();
+				for (Connection c : n.getUpConnections()) {
 					c.setDeltaVal(c.getInputNode().getValue() * n.nodeSigmoidDeriv()
 							* n.outputErrorDeriv(targets.get(n.getNodeID())));
 					c.correctWeights();
@@ -89,36 +76,43 @@ public class Layer {
 				}
 			}
 		} else {
-			List<Node> childNodes = child.getNodes();
-			List<Connection> childConnections = new ArrayList<Connection>();
+			System.out.println("Back propagation: on layer ->" + this.index + ": this is a middle hidden layer.");
 			for (Node node : nodes) {
-				for (Connection currentConnection : node.getLinkedConnections()) {
-
-					for (Node childNode : childNodes) {
-						for (Connection c1 : childNode.getLinkedConnections()) {
-							if (c1.getInputNode() == node) {
-								childConnections.add(c1);
-								break;
-							}
-						}
+				System.out.println("Back propagation: running on " + node.toString());
+				for (Connection upConnection : node.getUpConnections()) {
+					List<Connection> downConnections = node.getDownConnections();
+					for (Connection downConnection : downConnections) {
+						double deltaVal = upConnection.getDeltaVal() + node.nodeSigmoidDeriv()
+								* upConnection.getInputNode().getValue() * downConnection.getDeltaVal();
+						upConnection.setDeltaVal(deltaVal);
 					}
 
-					for (Connection childConnection : childConnections) {
-						double deltaVal = currentConnection.getDeltaVal() + node.nodeSigmoidDeriv()
-								* currentConnection.getInputNode().getValue() * childConnection.getDeltaVal();
-						currentConnection.setDeltaVal(deltaVal);
-					}
-
-					currentConnection.correctWeights();
-					currentConnection.setDeltaVal(0.0);
+					upConnection.correctWeights();
+					upConnection.setDeltaVal(0.0);
 				}
-				childConnections.clear();
-
 			}
 		}
 		if (parent.parent != null) {
+			System.out.println("Back propagation: to the next layer.");
 			parent.backPropagate(null);
+		} else {
+			System.out.println("Back propagation: on layer ->" + this.index
+					+ ": stop propagation becasue we have reached the first hidden layer.");
 		}
 	}
+
+	public double calculateAbsErr(List<Double>targets) {
+		double sum = 0;
+
+		for(Node outputNode : nodes) {
+			sum += Math.pow(targets.get(outputNode.getNodeID()) - outputNode.getValue(), 2);
+		}
+		
+		sum /= nodes.size();
+		
+		return sum;
+	}
+	
+	
 
 }
