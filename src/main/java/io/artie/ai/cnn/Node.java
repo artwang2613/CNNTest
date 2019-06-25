@@ -40,14 +40,10 @@ public class Node {
 		return downConnections;
 	}
 	
-	public void setLinkedConnections(List<Connection> linkedConnections) {
-		this.upConnections = linkedConnections;
-	}
-
 	public void createConnections(List<Node> nodesInPreviousLayer) {
 		for (Node nodeInPreviousLayer : nodesInPreviousLayer) {
 			// up connection
-			Connection con = new Connection(0.0, 0.0, nodeInPreviousLayer);
+			Connection con = new Connection(1.0, 0.0, nodeInPreviousLayer, this);
 			upConnections.add(con);
 			
 			// down connection
@@ -67,7 +63,7 @@ public class Node {
 		}
 		double oldValue = value;
 		value = 1.0 / (1.0 + Math.pow(Math.E, -1.0 * sum / 100.0));
-		System.out.println("Forward propagation: on node ->" + this.toString() + ": changing value from " + oldValue + " to " + value);
+		System.out.println("Forward propagation: on " + this.toString() + ": changing value from " + oldValue + " to " + value);
 	}
 	
 	public double nodeSigmoidDeriv() {
@@ -75,7 +71,7 @@ public class Node {
 	}
 	
 	public double outputErrorDeriv(double target) {
-		return (value - target)/10; // -(target - val)
+		return -(target - value);
 	}
 
 	public Layer getContainingLayer() {
@@ -87,6 +83,6 @@ public class Node {
 	}
 	
 	public String toString() {
-		return "Node: " + this.nodeID + "| layer " + containingLayer.getLayerID();
+		return "Node: " + this.nodeID + " with value -> " + this.value + " in layer " + containingLayer.getLayerID();
 	}
 }

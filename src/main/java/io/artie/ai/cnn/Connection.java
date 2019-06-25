@@ -9,18 +9,29 @@ public class Connection {
 	private Node inputNode;
 	
 	private Random rand = new Random();
+	private Node receivingNode;
 	
 	
 
 	
-	public Connection (double weightV, double deltaV, Node inputNode) {
+	public Connection (double weightV, double deltaV, Node inputNode, Node receivingNode) {
 		this.setRandomWeightVal();
 		this.setDeltaVal(deltaV);
 		this.setInputNode(inputNode);
+		this.setReceivingNode(receivingNode);
 		/*this.setLayerIndex(layerNum);
 		this.setConnectionIndex(connectionNum);*/
 	}
 	
+
+	private void setReceivingNode(Node receivingNode) {
+		// TODO Auto-generated method stub
+		this.receivingNode = receivingNode;
+	}
+
+	public Node getReceivingNode() {
+		return this.receivingNode;
+	}
 
 	public void setRandomWeightVal() {
 		this.weightVal = rand.nextDouble();
@@ -70,9 +81,14 @@ public class Connection {
 	}
 
 	public void correctWeights() {
-		weightVal += -10 * deltaVal;
+		weightVal -= 7.0 * deltaVal;
 	}
 
-
+	public String toString() {
+		return "Connection: delta->" + this.deltaVal + 
+				", weight->" + this.weightVal + 
+				" input node->" + this.inputNode.toString() +
+				" receiving node->" + this.receivingNode.toString();
+	}
 	
 }

@@ -8,6 +8,8 @@ public class Layer {
 	private Layer parent = null;
 	private Layer child = null;
 
+	private double totalError = 0.0;
+
 	private int index;
 
 	public Layer(int index, int size) {
@@ -58,12 +60,16 @@ public class Layer {
 		}
 		if (child != null) {
 			child.forwardPropagate();
+		} else {
+
 		}
 	}
 
 	public void backPropagate(List<Double> targets) {
 		System.out.println("Back propagation: starting on layer ->" + this.index);
 		if (targets != null) {
+			calculateTotalError(targets);
+			System.out.println("Total error of run: " + getTotalError());
 			System.out.println("Back propagation: on layer ->" + this.index + ": this is the OUTPUT layer.");
 			for (Node n : nodes) {
 				System.out.println("Back propagation: running on " + n.toString());
@@ -71,8 +77,12 @@ public class Layer {
 				for (Connection c : n.getUpConnections()) {
 					c.setDeltaVal(c.getInputNode().getValue() * n.nodeSigmoidDeriv()
 							* n.outputErrorDeriv(targets.get(n.getNodeID())));
+					//System.out.println("Previous Weight Value: " + c.getWeightVal() + " w/ expected change of: " + c.getDeltaVal());
+
 					c.correctWeights();
-					c.setDeltaVal(0.0);
+					
+					//System.out.println("New Weight Value: " + c.getWeightVal());
+
 				}
 			}
 		} else {
@@ -84,12 +94,16 @@ public class Layer {
 					for (Connection downConnection : downConnections) {
 						double deltaVal = upConnection.getDeltaVal() + node.nodeSigmoidDeriv()
 								* upConnection.getInputNode().getValue() * downConnection.getDeltaVal();
+//						System.out.println("delta -> " + deltaVal + 
+//								" up connection->" + upConnection.toString() + 
+//								", down connection->" + downConnection.toString());
 						upConnection.setDeltaVal(deltaVal);
 					}
-
+					//System.out.println("Previous Weight Value: " + upConnection.getWeightVal() + " w/ expected change of: " + upConnection.getDeltaVal());
 					upConnection.correctWeights();
-					upConnection.setDeltaVal(0.0);
+					//System.out.println("New Weight Value: " + upConnection.getWeightVal());
 				}
+
 			}
 		}
 		if (parent.parent != null) {
@@ -101,18 +115,24 @@ public class Layer {
 		}
 	}
 
-	public double calculateAbsErr(List<Double>targets) {
+	public void calculateTotalError(List<Double> targets) {
 		double sum = 0;
 
-		for(Node outputNode : nodes) {
-			sum += Math.pow(targets.get(outputNode.getNodeID()) - outputNode.getValue(), 2);
+		for (Node outputNode : nodes) {
+			sum += Math.pow((targets.get(outputNode.getNodeID()) - outputNode.getValue()), 2);
 		}
-		
-		sum /= nodes.size();
-		
-		return sum;
+
+		sum = sum / 2.0;
+
+		setTotalError(sum);
 	}
-	
-	
+
+	public double getTotalError() {
+		return totalError;
+	}
+
+	public void setTotalError(double totalError) {
+		this.totalError = totalError;
+	}
 
 }
