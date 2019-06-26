@@ -13,12 +13,12 @@ import org.supercsv.prefs.CsvPreference;
 
 public class WorkingNetwork {
 
-	private static final int TRAINING_ROUNDS = 20;
+	private static final int TRAINING_ROUNDS = 100;
 	private List<Double> targets = new ArrayList<>();
 	private List<List<Double>> trainingData = new ArrayList<List<Double>>();
 	private List<Double> pairedTargets = new ArrayList<>();
 	private Scanner scnr = new Scanner(System.in);
-	private int[] hiddenLayerSize = { 25, 10 };
+	private int[] hiddenLayerSize = {75, 25, 10 };
 
 	public static void main(String[] args) throws IOException {
 		WorkingNetwork nn = new WorkingNetwork();
@@ -54,26 +54,53 @@ public class WorkingNetwork {
 	 * predicted // output"); } }
 	 */
 
+	public void train1() throws IOException {
+		for (int i = 0; i < TRAINING_ROUNDS; i++) {
+			System.out.println("Training Round: " + 0 + " started.");
+			System.out.println("Training Round: on data ->" + trainingData.get(0));
+
+			setInputLayer(trainingData.get(0));
+			System.out.println("Training Round: on target data ->" + pairedTargets.get(0));
+			setTargets(pairedTargets.get(0));
+			forwardPass();
+			backwardPass();
+			resetDeltaInTheSystem();
+			System.out.println("Training Round: " + 0 + " completed.");
+		}
+	}
+
+	public void predict1() {
+		Random rand = new Random();
+		int curIndex = rand.nextInt(300);
+		System.out.println("Prediction: on data ->" + trainingData.get(0));
+		setInputLayer(trainingData.get(0));
+		System.out.println("Prediction: on target ->" + pairedTargets.get(0));
+		setTargets(pairedTargets.get(0));
+		forwardPass();
+		predictOutcome(pairedTargets.get(0));
+	}
+
 	public void train() throws IOException {
 		for (int i = 0; i < TRAINING_ROUNDS; i++) {
-			System.out.println("Training Round: " + i + " started.");
-			System.out.println("Training Round: on data ->" + trainingData.get(i));
+			System.out.println("Training Round: " + 0 + " started.");
+			System.out.println("Training Round: on data ->" + trainingData.get(0));
 
 			setInputLayer(trainingData.get(i));
-			System.out.println("Training Round: on target data ->" + pairedTargets.get(i));
+			System.out.println("Training Round: on target data ->" + pairedTargets.get(0));
 			setTargets(pairedTargets.get(i));
 			forwardPass();
 			backwardPass();
-			System.out.println("Training Round: " + i + " completed.");
+			resetDeltaInTheSystem();
+			System.out.println("Training Round: " + 0 + " completed.");
 		}
 	}
 
 	public void predict() {
 		Random rand = new Random();
 		int curIndex = rand.nextInt(300);
-		System.out.println("Prediction: on data ->" + trainingData.get(curIndex));
+		System.out.println("Prediction: on data ->" + trainingData.get(0));
 		setInputLayer(trainingData.get(curIndex));
-		System.out.println("Prediction: on target ->" + pairedTargets.get(curIndex));
+		System.out.println("Prediction: on target ->" + pairedTargets.get(0));
 		setTargets(pairedTargets.get(curIndex));
 		forwardPass();
 		predictOutcome(pairedTargets.get(curIndex));
@@ -91,7 +118,7 @@ public class WorkingNetwork {
 		try {
 			count = 0;
 			boolean isLabel;
-			while (count < 1000) {
+			while (count < 2000) {
 				isLabel = true;
 				List<String> row = cs.read();
 				List<Double> lineData = new ArrayList<Double>();
@@ -142,6 +169,15 @@ public class WorkingNetwork {
 		}
 	}
 
+	private void resetDeltaInTheSystem() {
+		for (Layer layer : layers) {
+			for (Node node : layer.getNodes()) {
+				for (Connection connection : node.getUpConnections()) {
+					connection.setDeltaVal(0.0);
+				}
+			}
+		}
+	}
 	/*
 	 * private double calculateAbsErr() { double sum = 0;
 	 * 
