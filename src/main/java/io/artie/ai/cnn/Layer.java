@@ -20,6 +20,13 @@ public class Layer {
 		}
 	}
 
+	public void addBiasNode() {
+		// create the bias node at the end of every layer except the output layer,
+		// taking no input with a value of 1
+		nodes.add(new Node(1.0, nodes.size(), Node.NODE_TYPE.BIAS, this));
+
+	}
+
 	public void addRelations(Layer parent) {
 		this.parent = parent;
 		parent.child = this;
@@ -28,6 +35,14 @@ public class Layer {
 		for (Node node : nodes) {
 			node.createConnections(parent.getNodes());
 		}
+	}
+
+	public Layer getChild() {
+		return child;
+	}
+
+	public Layer getParent() {
+		return parent;
 	}
 
 	public void setInput(List<Double> inputs) {
@@ -77,11 +92,12 @@ public class Layer {
 				for (Connection c : n.getUpConnections()) {
 					c.setDeltaVal(c.getInputNode().getValue() * n.nodeSigmoidDeriv()
 							* n.outputErrorDeriv(targets.get(n.getNodeID())));
-					//System.out.println("Previous Weight Value: " + c.getWeightVal() + " w/ expected change of: " + c.getDeltaVal());
+					// System.out.println("Previous Weight Value: " + c.getWeightVal() + " w/
+					// expected change of: " + c.getDeltaVal());
 
 					c.correctWeights();
-					
-					//System.out.println("New Weight Value: " + c.getWeightVal());
+
+					// System.out.println("New Weight Value: " + c.getWeightVal());
 
 				}
 			}
@@ -99,9 +115,10 @@ public class Layer {
 //								", down connection->" + downConnection.toString());
 						upConnection.setDeltaVal(deltaVal);
 					}
-					//System.out.println("Previous Weight Value: " + upConnection.getWeightVal() + " w/ expected change of: " + upConnection.getDeltaVal());
+					// System.out.println("Previous Weight Value: " + upConnection.getWeightVal() +
+					// " w/ expected change of: " + upConnection.getDeltaVal());
 					upConnection.correctWeights();
-					//System.out.println("New Weight Value: " + upConnection.getWeightVal());
+					// System.out.println("New Weight Value: " + upConnection.getWeightVal());
 				}
 
 			}
