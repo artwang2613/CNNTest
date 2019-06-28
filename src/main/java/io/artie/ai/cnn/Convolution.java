@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 
 
-public class Convolution {
+public class Convolution extends Layer {
 	private int id;
 	
 	private double[] filter = new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };

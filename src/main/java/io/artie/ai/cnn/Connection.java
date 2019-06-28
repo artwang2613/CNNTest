@@ -81,7 +81,7 @@ public class Connection {
 	}
 
 	public void correctWeights() {
-		weightVal -= 7.0 * deltaVal;
+		weightVal -= 10.0 * deltaVal;
 	}
 
 	public String toString() {

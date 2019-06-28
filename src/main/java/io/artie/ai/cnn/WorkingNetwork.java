@@ -13,23 +13,23 @@ import org.supercsv.prefs.CsvPreference;
 
 public class WorkingNetwork {
 
-	private static final int TRAINING_ROUNDS = 100;
+	private static final int TRAINING_ROUNDS = 500;
 	private List<Double> targets = new ArrayList<>();
 	private List<List<Double>> trainingData = new ArrayList<List<Double>>();
 	private List<Double> pairedTargets = new ArrayList<>();
 	private Scanner scnr = new Scanner(System.in);
-	private int[] hiddenLayerSize = {75, 25, 10 };
+	private int[] hiddenLayerSize = { 75, 25, 10 };
 
 	public static void main(String[] args) throws IOException {
 		WorkingNetwork nn = new WorkingNetwork();
-		nn.train();
+		nn.train1();
 
 		System.out.println("-----Ready to Predict-----");
 		while (true) {
 			if (nn.scnr.next().charAt(0) == 'q') {
 				break;
 			}
-			nn.predict();
+			nn.predict1();
 		}
 
 		nn.scnr.close();
@@ -56,7 +56,7 @@ public class WorkingNetwork {
 
 	public void train1() throws IOException {
 		for (int i = 0; i < TRAINING_ROUNDS; i++) {
-			System.out.println("Training Round: " + 0 + " started.");
+			System.out.println("Training Round: " + i + " started.");
 			System.out.println("Training Round: on data ->" + trainingData.get(0));
 
 			setInputLayer(trainingData.get(0));
@@ -65,42 +65,42 @@ public class WorkingNetwork {
 			forwardPass();
 			backwardPass();
 			resetDeltaInTheSystem();
-			System.out.println("Training Round: " + 0 + " completed.");
+			System.out.println("Training Round: " + i + " completed.");
 		}
 	}
 
 	public void predict1() {
-		Random rand = new Random();
-		int curIndex = rand.nextInt(300);
-		System.out.println("Prediction: on data ->" + trainingData.get(0));
-		setInputLayer(trainingData.get(0));
-		System.out.println("Prediction: on target ->" + pairedTargets.get(0));
-		setTargets(pairedTargets.get(0));
+		// Random rand = new Random();
+		// int curIndex = rand.nextInt(300);
+		System.out.println("Prediction: on data ->" + trainingData.get(11));
+		setInputLayer(trainingData.get(11));
+		System.out.println("Prediction: on target ->" + pairedTargets.get(11));
+		setTargets(pairedTargets.get(11));
 		forwardPass();
-		predictOutcome(pairedTargets.get(0));
+		predictOutcome(pairedTargets.get(11));
 	}
 
 	public void train() throws IOException {
 		for (int i = 0; i < TRAINING_ROUNDS; i++) {
-			System.out.println("Training Round: " + 0 + " started.");
-			System.out.println("Training Round: on data ->" + trainingData.get(0));
+			System.out.println("Training Round: " + i + " started.");
+			System.out.println("Training Round: on data ->" + trainingData.get(i));
 
 			setInputLayer(trainingData.get(i));
-			System.out.println("Training Round: on target data ->" + pairedTargets.get(0));
+			System.out.println("Training Round: on target data ->" + pairedTargets.get(i));
 			setTargets(pairedTargets.get(i));
 			forwardPass();
 			backwardPass();
 			resetDeltaInTheSystem();
-			System.out.println("Training Round: " + 0 + " completed.");
+			System.out.println("Training Round: " + i + " completed.");
 		}
 	}
 
 	public void predict() {
 		Random rand = new Random();
 		int curIndex = rand.nextInt(300);
-		System.out.println("Prediction: on data ->" + trainingData.get(0));
+		System.out.println("Prediction: on data ->" + trainingData.get(curIndex));
 		setInputLayer(trainingData.get(curIndex));
-		System.out.println("Prediction: on target ->" + pairedTargets.get(0));
+		System.out.println("Prediction: on target ->" + pairedTargets.get(curIndex));
 		setTargets(pairedTargets.get(curIndex));
 		forwardPass();
 		predictOutcome(pairedTargets.get(curIndex));
@@ -178,6 +178,7 @@ public class WorkingNetwork {
 			}
 		}
 	}
+
 	/*
 	 * private double calculateAbsErr() { double sum = 0;
 	 * 
@@ -221,6 +222,9 @@ public class WorkingNetwork {
 
 		for (int index = 0; index < hiddenLayerSize.length; index++) {
 			Layer currentLayer = new Layer(index + 1, hiddenLayerSize[index]);
+			if (index != hiddenLayerSize.length - 1) {
+				currentLayer.addBiasNode();
+			}
 			currentLayer.addRelations(previousLayer);
 			layers.add(currentLayer);
 			outputLayer = previousLayer = currentLayer;
