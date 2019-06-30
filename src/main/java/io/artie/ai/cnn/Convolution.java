@@ -4,22 +4,23 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.List;
 
 
 
-public class Convolution extends Layer {
+public class Convolution extends Layer{
 	private int id;
 	
 	private double[] filter = new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	private ArrayList<Double> patternedOutputs = new ArrayList<Double>();
-	private ArrayList<Connection> relatedConnections = new ArrayList<Connection>();
+	private List<Double> patternedOutputs = new ArrayList<Double>();
+	private List<Connection> relatedConnections = new ArrayList<Connection>();
 	
 
 
 	Convolution(int id, double[] Filter, ArrayList<Connection> connections, ArrayList<Double> patout) {
-		this.id = id;
+		super(id, 100);
 		this.filter = Filter;
-		this.relatedConnections = connections;
+		this.setRelatedConnections(connections);
 		this.patternedOutputs = patout;
 	}
 
@@ -27,7 +28,7 @@ public class Convolution extends Layer {
 		patternedOutputs.add(sum);
 	}
 	
-	public ArrayList<Double> getAllPO() {
+	public List<Double> getAllPO() {
 		return this.patternedOutputs;
 	}
 	
@@ -37,5 +38,13 @@ public class Convolution extends Layer {
 	
 	public double getFilter(int index) {
 		return this.filter[index];
+	}
+
+	public List<Connection> getRelatedConnections() {
+		return relatedConnections;
+	}
+
+	public void setRelatedConnections(List<Connection> relatedConnections) {
+		this.relatedConnections = relatedConnections;
 	}
 }
