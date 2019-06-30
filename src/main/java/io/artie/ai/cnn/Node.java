@@ -70,20 +70,20 @@ public class Node {
 
 	public void propagate() {
 		if (type != NODE_TYPE.BIAS) {
-			System.out.println("Forward propagation: on " + this.toString());
+			//System.out.println("Forward propagation: on " + this.toString());
 			double sum = 0.0;
 			for (Connection c : upConnections) {
 				sum += c.getWeightVal() * c.getInputNode().getValue();
 			}
 			double oldValue = value;
-			value = 1.0 / (1.0 + Math.pow(Math.E, -1.0 * sum / 100.0));
-			System.out.println("Forward propagation: on " + this.toString() + ": changing value from " + oldValue
-					+ " to " + value);
+			value = 1.0 / (1.0 + Math.pow(Math.E, -1.0 * sum / 100000.0)); // TODO: 100.0?
+			//System.out.println("Forward propagation: on " + this.toString() + ": changing value from " + oldValue
+				//	+ " to " + value);
 		}
 	}
 
 	public double nodeSigmoidDeriv() {
-		return value * (1.0 - value);
+		return  value * (1 -  value);
 	}
 
 	public double outputErrorDeriv(double target) {

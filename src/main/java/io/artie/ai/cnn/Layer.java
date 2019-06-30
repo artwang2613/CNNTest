@@ -37,41 +37,15 @@ public class Layer {
 		}
 	}
 
-	public Layer getChild() {
-		return child;
-	}
-
-	public Layer getParent() {
-		return parent;
-	}
-
-	public void setInput(List<Double> inputs) {
-		for (int i = 0; i < inputs.size(); i++) {
-			nodes.get(i).setValue(inputs.get(i));
-		}
-	}
-
-	public List<Node> getNodes() {
-		return nodes;
-	}
-
-	public int getLayerID() {
-		return index;
-	}
-
-	public void setLayerID(int layerID) {
-		this.index = layerID;
-	}
-
 	public void forwardPropagate() {
 		// we only do this for hidden layers ie checking if they have parents
 		if (parent != null) {
-			System.out.println("Forward propagation: starting on layer ->" + this.index);
+			//System.out.println("Forward propagation: starting on layer ->" + this.index);
 			for (Node node : nodes) {
 				node.propagate();
 			}
 		} else {
-			System.out.println("Forward propagation: skiping this layer ->" + this.index + ": this is the INPUT layer");
+			//System.out.println("Forward propagation: skiping this layer ->" + this.index + ": this is the INPUT layer");
 		}
 		if (child != null) {
 			child.forwardPropagate();
@@ -80,44 +54,65 @@ public class Layer {
 		}
 	}
 
+	public void correctWeightsInLayer() {
+		for(Node node : nodes) {
+			for(Connection upperConnection : node.getUpConnections()) {
+				upperConnection.correctWeights();
+				//System.out.println("Correcting " + upperConnection.getDeltaVal());
+			}
+		}
+	}
+	
 	public void backPropagate(List<Double> targets) {
-		System.out.println("Back propagation: starting on layer ->" + this.index);
+		//System.out.println("Back propagation: starting on layer ->" + this.index);
 		if (targets != null) {
 			calculateTotalError(targets);
 			System.out.println("Total error of run: " + getTotalError());
-			System.out.println("Back propagation: on layer ->" + this.index + ": this is the OUTPUT layer.");
-			for (Node n : nodes) {
-				System.out.println("Back propagation: running on " + n.toString());
+			//System.out.println("Back propagation: on layer ->" + this.index + ": this is the OUTPUT layer.");
+			for (Node node : nodes) {
+				//System.out.println("Back propagation: running on " + node.toString());
 				// double nodeID = n.getNodeID();
-				for (Connection c : n.getUpConnections()) {
-					c.setDeltaVal(c.getInputNode().getValue() * n.nodeSigmoidDeriv()
-							* n.outputErrorDeriv(targets.get(n.getNodeID())));
+				for (Connection c : node.getUpConnections()) {
+					// delta = -(target - out) * out(1 - out)
+					double delta = node.outputErrorDeriv(targets.get(node.getNodeID())) * node.nodeSigmoidDeriv() * c.getInputNode().getValue();
+					//System.out.println("" + node.outputErrorDeriv(targets.get(node.getNodeID())) + " * " + node.nodeSigmoidDeriv() + " * " + c.getInputNode().getValue()); 
+
+					//		(node.getValue() - targets.get(node.getNodeID())) * node.getValue() * (1 - node.getValue()) ;
+					c.setDeltaVal(delta);
+					//System.out.println("Delta for: " + c.toString());
 					// System.out.println("Previous Weight Value: " + c.getWeightVal() + " w/
 					// expected change of: " + c.getDeltaVal());
-
-					c.correctWeights();
+					//c.correctWeights();
 
 					// System.out.println("New Weight Value: " + c.getWeightVal());
 
 				}
 			}
 		} else {
-			System.out.println("Back propagation: on layer ->" + this.index + ": this is a middle hidden layer.");
+			//System.out.println("Back propagation: on layer ->" + this.index + ": this is a middle hidden layer.");
 			for (Node node : nodes) {
-				System.out.println("Back propagation: running on " + node.toString());
+				//System.out.println("Back propagation: running on " + node.toString());
 				for (Connection upConnection : node.getUpConnections()) {
 					List<Connection> downConnections = node.getDownConnections();
+
+					// sum of (delta_down * weight_down) * value (1 - value})
+					double deltaVal = 0.0;
 					for (Connection downConnection : downConnections) {
-						double deltaVal = upConnection.getDeltaVal() + node.nodeSigmoidDeriv()
-								* upConnection.getInputNode().getValue() * downConnection.getDeltaVal();
-//						System.out.println("delta -> " + deltaVal + 
-//								" up connection->" + upConnection.toString() + 
+						//System.out.println("BP : " + downConnection.toString());
+						deltaVal += downConnection.getDeltaVal() * downConnection.getWeightVal(); // TODO: need to see if we need to use the old weight
+				
+//								" up connection->" + upConnection.toString() +	 
 //								", down connection->" + downConnection.toString());
-						upConnection.setDeltaVal(deltaVal);
 					}
+					//System.out.println(deltaVal + " * " + node.nodeSigmoidDeriv() + " * " + upConnection.getInputNode().getValue()); 
+					deltaVal = deltaVal * node.nodeSigmoidDeriv() * upConnection.getInputNode().getValue();
+
+					upConnection.setDeltaVal(deltaVal);
+				//	System.out.println("Delta for: " + upConnection.toString());
+
 					// System.out.println("Previous Weight Value: " + upConnection.getWeightVal() +
 					// " w/ expected change of: " + upConnection.getDeltaVal());
-					upConnection.correctWeights();
+					//upConnection.correctWeights();
 					// System.out.println("New Weight Value: " + upConnection.getWeightVal());
 				}
 
@@ -152,4 +147,30 @@ public class Layer {
 		this.totalError = totalError;
 	}
 
+	public Layer getChild() {
+		return child;
+	}
+	
+	public Layer getParent() {
+		return parent;
+	}
+	
+	public void setInput(List<Double> inputs) {
+		for (int i = 0; i < inputs.size(); i++) {
+			nodes.get(i).setValue(inputs.get(i));
+		}
+	}
+	
+	public List<Node> getNodes() {
+		return nodes;
+	}
+	
+	public int getLayerID() {
+		return index;
+	}
+	
+	public void setLayerID(int layerID) {
+		this.index = layerID;
+	}
+	
 }
