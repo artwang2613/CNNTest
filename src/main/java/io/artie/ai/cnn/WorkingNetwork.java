@@ -13,7 +13,7 @@ import org.supercsv.prefs.CsvPreference;
 
 public class WorkingNetwork {
 
-	private static final int TRAINING_ROUNDS = 500;
+	private static final int TRAINING_ROUNDS = 5000;
 	private List<Double> targets = new ArrayList<>();
 	private List<List<Double>> trainingData = new ArrayList<List<Double>>();
 	private List<Double> pairedTargets = new ArrayList<>();
@@ -22,14 +22,14 @@ public class WorkingNetwork {
 
 	public static void main(String[] args) throws IOException {
 		WorkingNetwork nn = new WorkingNetwork();
-		nn.train1();
+		nn.train();
 
 		System.out.println("-----Ready to Predict-----");
 		while (true) {
 			if (nn.scnr.next().charAt(0) == 'q') {
 				break;
 			}
-			nn.predict1();
+			nn.predict();
 		}
 
 		nn.scnr.close();
@@ -118,7 +118,7 @@ public class WorkingNetwork {
 		try {
 			count = 0;
 			boolean isLabel;
-			while (count < 2000) {
+			while (count < TRAINING_ROUNDS) {
 				isLabel = true;
 				List<String> row = cs.read();
 				List<Double> lineData = new ArrayList<Double>();
@@ -127,13 +127,14 @@ public class WorkingNetwork {
 						lineData.add(Double.valueOf(row.get(0)));
 						// System.out.print(Double.valueOf(s));
 					} else {
-						if (Double.valueOf(s) != 0) {
-							lineData.add(1.0); //
-							// System.out.print(1.0);
-						} else {
-							lineData.add(0.0); //
-							// System.out.print(0.0);
-						}
+						lineData.add(Double.valueOf(s));
+//						if (Double.valueOf(s) != 0) {
+//							lineData.add(1.0); //
+//							// System.out.print(1.0);
+//						} else {
+//							lineData.add(0.0); //
+//							// System.out.print(0.0);
+//						}
 					}
 					isLabel = false;
 				}
@@ -176,6 +177,13 @@ public class WorkingNetwork {
 					connection.setDeltaVal(0.0);
 				}
 			}
+		}
+	}
+	
+	
+	private void correctAllWeights() {
+		for (Layer layer : layers) {
+			layer.correctWeightsInLayer();
 		}
 	}
 
@@ -223,7 +231,7 @@ public class WorkingNetwork {
 		for (int index = 0; index < hiddenLayerSize.length; index++) {
 			Layer currentLayer = new Layer(index + 1, hiddenLayerSize[index]);
 			if (index != hiddenLayerSize.length - 1) {
-				currentLayer.addBiasNode();
+			//	currentLayer.addBiasNode();
 			}
 			currentLayer.addRelations(previousLayer);
 			layers.add(currentLayer);
@@ -237,5 +245,6 @@ public class WorkingNetwork {
 
 	public void backwardPass() {
 		outputLayer.backPropagate(targets);
+		correctAllWeights();
 	}
 }
