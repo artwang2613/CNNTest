@@ -57,7 +57,7 @@ public class Node {
 		for (Node nodeInPreviousLayer : nodesInPreviousLayer) {
 			// up connection
 			Connection con = new Connection(1.0, 0.0, nodeInPreviousLayer, this);
-			upConnections.add(con);
+			this.upConnections.add(con);
 
 			// down connection
 			nodeInPreviousLayer.addDownConnection(con);

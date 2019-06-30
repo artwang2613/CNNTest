@@ -56,6 +56,7 @@ public class Connection {
 
 	public void correctWeights() {
 		weightVal -= eta * deltaVal;
+		deltaVal = 0.0;
 	}
 
 	public String toString() {

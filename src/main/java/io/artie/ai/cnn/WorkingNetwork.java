@@ -18,7 +18,8 @@ public class WorkingNetwork {
 	private List<List<Double>> trainingData = new ArrayList<List<Double>>();
 	private List<Double> pairedTargets = new ArrayList<>();
 	private Scanner scnr = new Scanner(System.in);
-	private int[] hiddenLayerSize = { 75, 25, 10 };
+	private int[] hiddenLayerSize = { 75, 25 };
+	private int outputLayerSize = 10;
 
 	public static void main(String[] args) throws IOException {
 		WorkingNetwork nn = new WorkingNetwork();
@@ -64,7 +65,7 @@ public class WorkingNetwork {
 			setTargets(pairedTargets.get(0));
 			forwardPass();
 			backwardPass();
-			resetDeltaInTheSystem();
+//			resetDeltaInTheSystem();
 			System.out.println("Training Round: " + i + " completed.");
 		}
 	}
@@ -90,14 +91,14 @@ public class WorkingNetwork {
 			setTargets(pairedTargets.get(i));
 			forwardPass();
 			backwardPass();
-			resetDeltaInTheSystem();
+//			resetDeltaInTheSystem();
 			System.out.println("Training Round: " + i + " completed.");
 		}
 	}
 
 	public void predict() {
 		Random rand = new Random();
-		int curIndex = rand.nextInt(300);
+		int curIndex = rand.nextInt(TRAINING_ROUNDS);
 		System.out.println("Prediction: on data ->" + trainingData.get(curIndex));
 		setInputLayer(trainingData.get(curIndex));
 		System.out.println("Prediction: on target ->" + pairedTargets.get(curIndex));
@@ -117,16 +118,15 @@ public class WorkingNetwork {
 		int count;
 		try {
 			count = 0;
-			boolean isLabel;
+//			boolean isLabel;
 			while (count < TRAINING_ROUNDS) {
-				isLabel = true;
+//				isLabel = true;
 				List<String> row = cs.read();
 				List<Double> lineData = new ArrayList<Double>();
+				pairedTargets.add(Double.valueOf(row.get(0)));
+				
+				row.remove(0);
 				for (String s : row) {
-					if (isLabel) {
-						lineData.add(Double.valueOf(row.get(0)));
-						// System.out.print(Double.valueOf(s));
-					} else {
 						lineData.add(Double.valueOf(s));
 //						if (Double.valueOf(s) != 0) {
 //							lineData.add(1.0); //
@@ -135,8 +135,6 @@ public class WorkingNetwork {
 //							lineData.add(0.0); //
 //							// System.out.print(0.0);
 //						}
-					}
-					isLabel = false;
 				}
 				trainingData.add(lineData);
 				// System.out.println("");
@@ -146,11 +144,6 @@ public class WorkingNetwork {
 			e.printStackTrace();
 		} finally {
 			cs.close();
-		}
-
-		for (List<Double> lineData : trainingData) {
-			pairedTargets.add(lineData.get(0));
-			lineData.remove(0);
 		}
 	}
 
@@ -170,15 +163,15 @@ public class WorkingNetwork {
 		}
 	}
 
-	private void resetDeltaInTheSystem() {
-		for (Layer layer : layers) {
-			for (Node node : layer.getNodes()) {
-				for (Connection connection : node.getUpConnections()) {
-					connection.setDeltaVal(0.0);
-				}
-			}
-		}
-	}
+//	private void resetDeltaInTheSystem() {
+//		for (Layer layer : layers) {
+//			for (Node node : layer.getNodes()) {
+//				for (Connection connection : node.getUpConnections()) {
+//					connection.setDeltaVal(0.0);
+//				}
+//			}
+//		}
+//	}
 	
 	
 	private void correctAllWeights() {
@@ -224,19 +217,27 @@ public class WorkingNetwork {
 	public WorkingNetwork() throws IOException {
 		Layer previousLayer = null;
 		this.parseCsv();
-
+		int index = 0;
+		
 		// input layer initialized separately
-		previousLayer = inputLayer = new Layer(0, trainingData.get(0).size());
-
-		for (int index = 0; index < hiddenLayerSize.length; index++) {
-			Layer currentLayer = new Layer(index + 1, hiddenLayerSize[index]);
-			if (index != hiddenLayerSize.length - 1) {
+		previousLayer = inputLayer = new Layer(index++, trainingData.get(0).size());
+		layers.add(inputLayer);
+		
+		// hidden layers
+		for (int size : hiddenLayerSize) {
+			Layer currentLayer = new Layer(index++, size);
 			//	currentLayer.addBiasNode();
-			}
+
 			currentLayer.addRelations(previousLayer);
 			layers.add(currentLayer);
-			outputLayer = previousLayer = currentLayer;
+			previousLayer = currentLayer;
 		}
+		
+		// output layer
+		outputLayer = new Layer(index, this.outputLayerSize);
+		outputLayer.addRelations(previousLayer);
+		layers.add(outputLayer);
+		
 	}
 
 	public void forwardPass() {
