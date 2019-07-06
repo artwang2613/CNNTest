@@ -13,18 +13,20 @@ import org.supercsv.prefs.CsvPreference;
 
 public class WorkingNetwork {
 
-	private static final int TRAINING_ROUNDS = 5000;
+	private static final int TRAINING_ROUNDS = 500;
 	private List<Double> targets = new ArrayList<>();
 	private List<List<Double>> trainingData = new ArrayList<List<Double>>();
 	private List<Double> pairedTargets = new ArrayList<>();
 	private Scanner scnr = new Scanner(System.in);
-	private int[] hiddenLayerSize = { 75, 25 };
+	private int[] hiddenLayerSize = { 30, 25 };
 	private int outputLayerSize = 10;
 
 	public static void main(String[] args) throws IOException {
 		WorkingNetwork nn = new WorkingNetwork();
 		nn.train();
 
+		nn.displayWeightMap();
+		
 		System.out.println("-----Ready to Predict-----");
 		while (true) {
 			if (nn.scnr.next().charAt(0) == 'q') {
@@ -34,6 +36,13 @@ public class WorkingNetwork {
 		}
 
 		nn.scnr.close();
+	}
+
+	private void displayWeightMap() {
+		// TODO Auto-generated method stub
+		for (Layer layer : layers) {
+			layer.displayWeightMap();
+		}
 	}
 
 	// this using arrayList for different sized hidden layers, flexible

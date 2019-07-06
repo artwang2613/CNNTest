@@ -92,18 +92,20 @@ public class Layer {
 			//System.out.println("Back propagation: on layer ->" + this.index + ": this is a middle hidden layer.");
 			for (Node node : nodes) {
 				//System.out.println("Back propagation: running on " + node.toString());
+				// sum of (delta_down * weight_down) * value (1 - value})
+				double deltaValFromDownConnections = 0.0;
+				for (Connection downConnection : node.getDownConnections()) {
+					//System.out.println("BP : " + downConnection.toString());
+					deltaValFromDownConnections += downConnection.getDeltaVal() * downConnection.getWeightVal(); // TODO: need to see if we need to use the old weight
+					
+//								" up connection->" + upConnection.toString() +	 
+//								", down connection->" + downConnection.toString());
+				}
+				
+				double deltaVal = deltaValFromDownConnections;
 				for (Connection upConnection : node.getUpConnections()) {
 					List<Connection> downConnections = node.getDownConnections();
 
-					// sum of (delta_down * weight_down) * value (1 - value})
-					double deltaVal = 0.0;
-					for (Connection downConnection : downConnections) {
-						//System.out.println("BP : " + downConnection.toString());
-						deltaVal += downConnection.getDeltaVal() * downConnection.getWeightVal(); // TODO: need to see if we need to use the old weight
-				
-//								" up connection->" + upConnection.toString() +	 
-//								", down connection->" + downConnection.toString());
-					}
 					//System.out.println(deltaVal + " * " + node.nodeSigmoidDeriv() + " * " + upConnection.getInputNode().getValue()); 
 					deltaVal = deltaVal * node.nodeSigmoidDeriv() * upConnection.getInputNode().getValue();
 
@@ -118,7 +120,7 @@ public class Layer {
 
 			}
 		}
-		if (parent.parent != null) {
+		if (parent != null) {
 			System.out.println("Back propagation: to the next layer.");
 			parent.backPropagate(null);
 		} else {
@@ -172,5 +174,26 @@ public class Layer {
 	public void setLayerID(int layerID) {
 		this.index = layerID;
 	}
-	
+
+	public void displayWeightMap() {
+		for (Node node : this.getNodes()) {
+			for (Connection connection : node.getUpConnections()) {
+				String layerType = "";
+				if (this.getParent() == null) {
+					layerType = "type->input";
+				}
+				else if (this.getChild() == null) {
+					layerType = "type->output";
+				}
+				else {
+					layerType = "type->hidden";
+				}
+				
+				StringBuilder msgBuilder = new StringBuilder("|Layer: " + this.getLayerID() + "<" + layerType + "> ");
+				msgBuilder.append("|node:" + node.getNodeID() + " ");
+				msgBuilder.append("|up connection:" + "name->" + connection.getName() + ", weight->" + connection.getWeightVal());
+				System.out.println(msgBuilder.toString());
+			}
+		}
+	}	
 }

@@ -10,12 +10,14 @@ public class Connection {
 	private Node receivingNode;
 
 	private Random rand = new Random();
+	private String name;
 
 	public Connection(double weightV, double deltaV, Node inputNode, Node receivingNode) {
 		this.setRandomWeightVal();
 		this.setDeltaVal(deltaV);
 		this.setInputNode(inputNode);
 		this.setReceivingNode(receivingNode);
+		this.name = inputNode.getNodeID() + "-" + receivingNode.getNodeID();
 	}
 
 	private void setReceivingNode(Node receivingNode) {
@@ -62,5 +64,9 @@ public class Connection {
 	public String toString() {
 		return "Connection: delta->" + this.deltaVal + ", weight->" + this.weightVal + " input node->"
 				+ this.inputNode.toString() + " receiving node->" + this.receivingNode.toString();
+	}
+
+	public String getName() {
+		return name;
 	}
 }
