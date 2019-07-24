@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Node {
 	public static enum NODE_TYPE {
-		NORMAL, BIAS
+		NORMAL, BIAS, FILTER
 	}
 
 	private Layer containingLayer;
@@ -51,9 +51,11 @@ public class Node {
 	}
 
 	public void createConnections(List<Node> nodesInPreviousLayer) {
-		if (type == NODE_TYPE.BIAS)
+		if (type == NODE_TYPE.BIAS) {
 			return;
-
+		}
+		
+		
 		for (Node nodeInPreviousLayer : nodesInPreviousLayer) {
 			// up connection
 			Connection con = new Connection(1.0, 0.0, nodeInPreviousLayer, this);
