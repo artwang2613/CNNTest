@@ -1,5 +1,12 @@
 # CNNTest
+WIP - Currently in the middle of turning it into a convolutional neural network. Does not work at the moment.
+
+
 Test version of a CNN
+
+
+
+
 
 To run:
 
