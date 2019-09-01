@@ -34,8 +34,35 @@ public class Image {
 				break;
 			}
 		}
+
 	}
-	
+
+	public Image(int iD, double[] pixels, int conversionFactor) {
+		this.setiD(iD);
+		this.setRowLength(conversionFactor);
+
+		int counter = 0;
+		List<Double> row = new ArrayList<Double>();
+
+		int imageMaxSize = (int) Math.pow(conversionFactor, 2);
+		setNumPixels(imageMaxSize);
+
+		// TODO handle underflow of data to make it a full square
+		for (int index = 0; index < pixels.length; index++) {
+			if (index > imageMaxSize) {
+				if (counter++ < conversionFactor) {
+					row.add(pixels[index]);
+				} else {
+					image.add(row);
+					row = new ArrayList<Double>();
+					counter = 0;
+				}
+			} else {
+				break;
+			}
+		}
+	}
+
 	public Image(int iD, double targetVal, List<List<Double>> pixels, int conversionFactor) {
 		this.setiD(iD);
 		this.setTargetValue(targetVal);
@@ -58,6 +85,24 @@ public class Image {
 		}
 
 		return returnImage;
+	}
+	
+	public List<Double> getImageAsNNInput(){
+		
+		List<Double> returnImage = new ArrayList<Double>();
+		
+		for(List<Double> rows : image) {
+			for(Double pixelVal : rows) {
+				returnImage.add(pixelVal);
+			}
+		}
+		
+		return returnImage;
+	}
+
+	public Double getIndexValue(int rowIndex, int colIndex) {
+
+		return image.get(rowIndex).get(colIndex);
 	}
 
 	public int getiD() {

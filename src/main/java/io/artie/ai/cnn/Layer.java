@@ -229,6 +229,10 @@ public class Layer {
 		this.outPutImages = images;
 	}
 	
+	public void setImage(Image image, int index) {
+		this.outPutImages.set(index, image);
+	}
+	
 	public void addImage(Image image) {
 		this.outPutImages.add(image);
 	}
