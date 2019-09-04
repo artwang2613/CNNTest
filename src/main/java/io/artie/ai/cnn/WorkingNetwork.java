@@ -216,14 +216,26 @@ public class WorkingNetwork {
 		System.out.println("As compared to the theoretical value of: " + correctTarget);
 
 	}
+	
+	
+	public WorkingNetwork() {
+		Layer inputLayer = new Layer(0, trainingData.size());
+		for(List<Double> image : trainingData) {
+			double[] pixels = new double[trainingData.get(0).size()];
+			for(int i = 0; i < image.size(); i++) {
+				pixels[i] = image.get(i).doubleValue();
+			}
+			inputLayer.addImage(new Image(image.indexOf(image), pixels, 28));
+		}
+	}
 
 	// ____________________________________________________________
 	// This is new code for a more OOP style
-	private List<Layer> layers = new ArrayList<Layer>();
+	/*private List<Layer> layers = new ArrayList<Layer>();
 	private Layer inputLayer = null;
 	private Layer outputLayer = null;
 
-	public WorkingNetwork() throws IOException {
+    public WorkingNetwork() throws IOException {
 		Layer previousLayer = null;
 		this.parseCsv();
 		int index = 0;
@@ -248,6 +260,9 @@ public class WorkingNetwork {
 		layers.add(outputLayer);
 		
 	}
+	
+	
+	
 
 	public void forwardPass() {
 		inputLayer.forwardPropagate();
@@ -256,5 +271,5 @@ public class WorkingNetwork {
 	public void backwardPass() {
 		outputLayer.backPropagate(targets);
 		correctAllWeights();
-	}
+	}*/
 }

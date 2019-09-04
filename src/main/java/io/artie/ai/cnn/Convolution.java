@@ -82,7 +82,7 @@ public class Convolution extends Layer {
 	public void setOutputImages(List<Image> images) {
 		this.outputImages = images;
 	}
-	
+
 	public void setOutputImage(Image image, int index) {
 		this.outputImages.set(index, image);
 	}
@@ -92,8 +92,6 @@ public class Convolution extends Layer {
 	}
 
 	public void pool() {
-
-	
 
 		List<Double> poolSorter = null;
 		List<Double> pooledImage = null;
@@ -119,31 +117,28 @@ public class Convolution extends Layer {
 					pooledImage.add(poolSorter.get(0));
 				}
 			}
-			
+
 			convertedPooledImage = new double[pooledImage.size()];
 
-			
 			for (Double d : pooledImage) {
 				convertedPooledImage[pooledImage.indexOf(d)] = d.doubleValue();
 			}
-			int conversionFactor = this.getOutputImages().get(0).getRowLength()/poolingSize;
+			int conversionFactor = this.getOutputImages().get(0).getRowLength() / poolingSize;
 
 			this.setOutputImage(new Image(image.getiD(), convertedPooledImage, conversionFactor), image.getiD());
-			
+
 		}
-		
-		
+
 	}
-	
-	public List<Double> getImagesAsLinear(){
-		
+
+	public List<Double> getImagesAsLinear() {
+
 		List<Double> returnedLinearImage = new ArrayList<Double>();
-	
-		
-		for(Image outputImage : outputImages) {
+
+		for (Image outputImage : outputImages) {
 			returnedLinearImage.addAll(outputImage.getImageAsNNInput());
 		}
-		
+
 		return returnedLinearImage;
 	}
 }
